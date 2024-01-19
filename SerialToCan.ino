@@ -15,6 +15,8 @@
 #define SERIAL_UPDATE_RATE 10   // Serial read refresh from Speeduino
 #define CAN_PACKET_SIZE    123  // Number of data that comes from 'n' Speeduino Command
 
+// #define DEBUG 1
+
 static uint32_t oldtime=millis();   // for the timeout
 uint8_t SpeedyResponse[CAN_PACKET_SIZE]; //The data buffer for the serial3 data. This is longer than needed, just in case
 bool doRequest; // when true, it's ok to request more data from speeduino serial
@@ -386,6 +388,14 @@ void handleN()
             Serial.read();
         }
     }
+
+    #ifdef DEBUG
+    Serial.print(packet_size);
+    for (int i=0; i<packet_size; i++) {
+      Serial.print(SpeedyResponse[i]);
+    }
+    #endif
+
     doRequest = true;               // restart data reading
     oldtime = millis();             // zero the timeout
     SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
@@ -421,6 +431,9 @@ void readSerial()
             SerialState = R_MESSAGE;
             break;
         default:
+             #ifdef DEBUG
+              Serial.write("Bad command1");
+            #endif
             break;
     }
 }
@@ -438,6 +451,9 @@ void loop() {
             if (Serial.available() >= 3) {  handleR(); }  // read and process the R-message from serial3, when it's fully received.
             break;
         default:
+            #ifdef DEBUG
+              Serial.write("Bad command2");
+            #endif
             break;
     }
     if ( (millis()-oldtime) > 500) { // timeout
